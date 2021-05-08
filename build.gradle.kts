@@ -1,16 +1,16 @@
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
-val kotlinVersion = "1.4.0"
-val serializationVersion = "1.0.0-RC"
-val ktorVersion = "1.4.0"
+val kotlinVersion = "1.4.32"
+val serializationVersion = "1.2.0"
+val ktorVersion = "1.5.4"
 
 plugins {
-    kotlin("multiplatform") version "1.4.0"
+    kotlin("multiplatform") version "1.4.32"
     application //to run JVM part
-    kotlin("plugin.serialization") version "1.4.0"
+    kotlin("plugin.serialization") version "1.4.32"
 }
 
-group = "org.example"
+group = "com.wjp"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -33,19 +33,14 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-common"))
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
-            }
-        }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
             }
         }
 
         val jvmMain by getting {
             dependencies {
+                add(commonMain)
                 implementation("io.ktor:ktor-serialization:$ktorVersion")
                 implementation("io.ktor:ktor-server-core:$ktorVersion")
                 implementation("io.ktor:ktor-server-netty:$ktorVersion")
@@ -57,23 +52,27 @@ kotlin {
 
         val jsMain by getting {
             dependencies {
+                add(commonMain)
+
                 implementation("io.ktor:ktor-client-js:$ktorVersion") //include http&websockets
 
                 //ktor client js json
                 implementation("io.ktor:ktor-client-json-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
 
-                implementation("org.jetbrains:kotlin-react:16.13.1-pre.110-kotlin-1.4.0")
-                implementation("org.jetbrains:kotlin-react-dom:16.13.1-pre.110-kotlin-1.4.0")
-                implementation(npm("react", "16.13.1"))
-                implementation(npm("react-dom", "16.13.1"))
+                val versionRect = "17.0.1-pre.148-kotlin-1.4.21"
+                val versionRectNpm = "17.0.2"
+                implementation("org.jetbrains:kotlin-react:$versionRect")
+                implementation("org.jetbrains:kotlin-react-dom:$versionRect")
+                implementation(npm("react", versionRectNpm))
+                implementation(npm("react-dom", versionRectNpm))
             }
         }
     }
 }
 
 application {
-    mainClassName = "ServerKt"
+    mainClassName = "com.wjp.server.ServerKt"
 }
 
 // include JS artifacts in any JAR we generate
@@ -84,6 +83,7 @@ tasks.getByName<Jar>("jvmJar") {
         "jsBrowserDevelopmentWebpack"
     }
     val webpackTask = tasks.getByName<KotlinWebpack>(taskName)
+    webpackTask.
     dependsOn(webpackTask) // make sure JS gets compiled first
     from(File(webpackTask.destinationDirectory, webpackTask.outputFileName)) // bring output file along into the JAR
 }
