@@ -15,10 +15,16 @@ import io.ktor.routing.*
 import io.ktor.serialization.json
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import kotlinx.coroutines.flow.MutableStateFlow
+import org.litote.kmongo.coroutine.*
+import org.litote.kmongo.eq
+import org.litote.kmongo.reactivestreams.KMongo
+
+val client = KMongo.createClient().coroutine //use coroutine extension
+val database = client.getDatabase("shop_db")
+val collection = database.getCollection<ShopItem>()
 
 fun main() {
-    embeddedServer(factory = Netty, port = 8080) {
+    embeddedServer(factory = Netty,  port = 8080, host = "localhost") {
         install(ContentNegotiation) {
             json()
         }
@@ -32,11 +38,12 @@ fun main() {
             gzip()
         }
 
-        val shopItemList = mutableListOf(
-                ShopItem("Apple", 12.0),
-                ShopItem("Banna", 18.0),
-                ShopItem("Orange", 23.0),
-        )
+//        val shopItemList = mutableListOf(
+//                ShopItem("Apple", 12.0),
+//                ShopItem("Banna", 18.0),
+//                ShopItem("Orange", 23.0),
+//        )
+
         routing {
             // 将 index.html 作为一个 placeholder
             get("/"){
@@ -48,27 +55,27 @@ fun main() {
             static("/"){
                 resources("")
             }
-            route("/api") {
-                get("/hello") {
-                    call.respond("hello ktor")
+
+            route(ShopItem.path) {
+                get {
+//                        call.respond(shopItemList)
+                    call.respond(collection.find().toList())
                 }
-                get("/") {
-                    call.respondRedirect("items")
+                post {
+                    val item =  call.receive<ShopItem>()
+//                        shopItemList += item
+                    collection.insertOne(item)
+                    call.respond(HttpStatusCode.OK)
                 }
-                route("items") {
-                    get {
-                        call.respond(shopItemList)
-                    }
-                    post {
-                        shopItemList += call.receive<ShopItem>()
-                        call.respond(HttpStatusCode.OK)
-                    }
-                    delete("/{id}") {
-                        val id = call.parameters["id"]?.toInt() ?: error("invalid id ${call.parameters["id"]}")
-                        shopItemList.removeIf { it.id == id }
-                        call.respond(HttpStatusCode.OK)
-                    }
+                delete("/{id}") {
+                    val id = call.parameters["id"]?.toInt() ?: error("invalid id ${call.parameters["id"]}")
+//                        shopItemList.removeIf { it.id == id }
+                    collection.deleteOneById(ShopItem::id eq id)
+                    call.respond(HttpStatusCode.OK)
                 }
+            }
+            get("hello") {
+                call.respond("hello ktor")
             }
 
         }

@@ -10,7 +10,7 @@ data class ShopItem(
 ) {
     val id: Int = name.hashCode()
 
-//    companion object {
-//        const val path = "/items"
-//    }
+    companion object {
+        const val path = "/items"
+    }
 }

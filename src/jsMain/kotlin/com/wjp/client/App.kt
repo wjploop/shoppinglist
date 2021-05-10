@@ -2,15 +2,15 @@ package com.wjp.client
 
 import com.wjp.common.ShopItem
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.html.buttonInput
+import kotlinx.html.js.onClickFunction
 import react.RProps
-import react.dom.h1
-import react.dom.li
-import react.dom.ul
+import react.dom.*
 import react.functionalComponent
 import react.useEffect
 import react.useState
+import kotlin.random.Random
 
 private val scope = MainScope()
 
@@ -28,10 +28,34 @@ val App = functionalComponent<RProps> {
         +"Full-Stack List"
     }
     ul {
-        items.sortedBy { it.id }.forEach { item ->
+        items.forEach { item ->
             li {
-                key = item.id.toString()
-                "name ${item.name}  price: ${item.price}"
+                attrs {
+                    onClickFunction = {
+                        scope.launch {
+                            deleteItem(item)
+                        }
+                    }
+                }
+                +"name ${item.name}  price: ${item.price}"
+            }
+        }
+    }
+    p {
+        +"hello"
+    }
+
+    button {
+        p {
+            +" Add Item"
+        }
+        attrs {
+            onClickFunction = {
+                scope.launch {
+                    val newItem = ShopItem("Kotlin ", Random.nextDouble())
+                    addItem(newItem)
+                    setItems(items())
+                }
             }
         }
     }

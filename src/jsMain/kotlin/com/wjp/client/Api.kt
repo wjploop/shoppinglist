@@ -15,15 +15,15 @@ val jsonClient = HttpClient {
     }
 }
 
-suspend fun items(): List<ShopItem> = jsonClient.get(endpoint+"items")
+suspend fun items(): List<ShopItem> = jsonClient.get(endpoint + ShopItem.path)
 
 suspend fun addItem(item: ShopItem) {
-    jsonClient.post<Unit>(endpoint+"items") {
+    jsonClient.post<Unit>(ShopItem.path) {
         body = item
     }
 }
 
 suspend fun deleteItem(item: ShopItem) {
-    jsonClient.delete<Unit>(endpoint+"items" + "/${item.id}")
+    jsonClient.delete<Unit>(ShopItem.path + "/${item.id}")
 
 }
